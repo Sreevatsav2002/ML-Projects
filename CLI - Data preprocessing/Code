@@ -1,0 +1,152 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler, LabelEncoder, OneHotEncoder
+
+
+
+
+class DataPreprocessing():
+    def __init__(self,data):
+        self.df = pd.read_csv(data)
+        self.col = list(self.df.columns)
+        print("Data Loaded Successfully")
+        print(self.df.head())
+        # print(self.df.info())
+
+    def descrip(self):
+        if type(self.df) == 'numpy.ndarray':
+            self.df = pd.DataFrame(self.df, columns =self.col)
+
+        print(self.df.info())
+        while True:
+            res = input("Do you want to access any columns?\ny or n?\n")
+            if res == 'n':
+                return 
+            else:
+                self.namecol()
+                colName = input("Which column you want to access?\nPlease specify the name or coressponding number\n")
+                print(self.columns(colName))
+                
+    def removeNull(self):
+        while True:
+            self.col = list(self.df.columns)
+            res = input("Do you want to remove NULL values?\ny or n?\n")
+            if res == 'n':
+                return
+            else:
+                self.namecol()
+                colName = input("From which column do you want to remove the NULL values?\nPlease specify the number\n")
+                colName = self.col[int(colName)]
+                print(f"The column '{colName}' has {len(self.df[colName].isnull() == True)} NULL values")
+                decision = input("Do you want to proceed?\ny or n?\n")
+                print("\n\n")
+                if decision == 'n':
+                    continue
+                else:
+                    while True:
+                        methods = ['Drop column',"Drop Row",'Replace by mean','Replace by Median','Replace by given value']
+                        for i , j in enumerate(methods):
+                            print(f'{i}. {j}')
+                        step = input('Which operation would you like to perform?\n')
+                        decision = input(f"Are you sure you want to {methods[int(step)]}?\ny or n\n")
+                        if decision == 'n':
+                            break
+                        else:
+                            if step == '0':
+                                self.df.drop([colName],axis=1,inplace=True)
+
+                            elif step == '1':
+                                self.df.dropna(subset=[colName], inplace=True)
+
+                            elif step == '2':
+                                mean_value=self.df[colName].mean()
+                                self.df[colName].fillna(value=mean_value, inplace=True)
+
+                            elif step == '3':
+                                median_value=self.df[colName].mean()
+                                self.df[colName].fillna(value = median_value, inplace = True)
+                            elif step == '4':
+                                replace_value = input('Please enter the replacement term/value: ')
+                                self.df[colName].fillna(value = replace_value, inplace = True)
+
+    def encoding(self):
+        while True:
+            res = input("Do you want to Encode Data?\ny or n\n")
+            if res == 'n':
+                return 
+            else:
+                methods = ["Label Encoder","One hot encoder"]
+                print("\n\n")
+                for i , j in enumerate(methods):
+                    print(f'{i}. {j}')
+                step = input('Which operation would you like to perform?\n')
+                decision = input(f"Are you sure you want to use {methods[int(step)]}?\ny or n\n")
+                if decision == 'n':
+                    break
+                else:
+                    if step == '0':
+                        encoder = LabelEncoder()
+                    else:
+                        encoder = OneHotEncoder()
+                self.namecol()
+                colName = input("Which column do you want to encode?\nPlease specify the number\n")
+                colName = self.col[int(colName)]
+                self.df[colName] = encoder.fit_transform(self.df[colName])
+
+    def scaling(self):
+        while True:
+            res = input("Do you want to Feature Scale the Data?\ny or n\n")
+            print("\n\n")
+            if res == 'n':
+                return 
+            else:
+                scaler = StandardScaler()
+                self.df = scaler.fit_transform(self.df)
+    def savefile(self,file):
+        self.df.to_csv(file + '_modified' +'.csv')
+
+
+    def namecol(self):
+        arr = self.df.columns
+        for i , j in enumerate(arr):
+            print(f'{i}: {j}')
+        
+    def columns(self,colName):
+        if colName.isdigit():
+            colName = self.col[int(colName)]
+        print(f'Following is the information about the column "{colName}"')
+        return self.df[colName].describe()
+
+
+
+
+
+
+
+preprocessing = ['Data Description','Handling NUll values','Encoding Categorical Data','Feature Scaling','Download modified Dataset']
+loadfile = input("Name of the required file: ") + ".csv"
+prog = DataPreprocessing(loadfile)
+
+while True:
+    print('\nThe preprocessing steps are as follows:')
+    for i , j in enumerate(preprocessing):
+        print(f'{i + 1}. {j}')
+    step = input('Which step would you like to perform?\n')
+    if step == '1':
+        print(prog.descrip())
+    
+    elif step == '2':
+        prog.removeNull()
+    
+    elif step == '3':
+        prog.encoding()
+
+    elif step == '4':
+        prog.scaling()
+    
+    elif step == '5':
+        prog.savefile(loadfile[:len(loadfile) - 4])
+
+    elif step == '-1':
+        break
